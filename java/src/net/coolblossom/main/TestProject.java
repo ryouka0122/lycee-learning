@@ -13,7 +13,14 @@ import net.coolblossom.lycee.machinelearning.classification.online.OnlineAlgorit
 import net.coolblossom.lycee.machinelearning.classification.online.PAType;
 import net.coolblossom.lycee.machinelearning.classification.online.PossiveAggressiveAlgorithm;
 
+/**
+ * テストプログラム
+ * @author ryouka0122@github
+ *
+ */
 public class TestProject {
+
+	/** 教師データ（ラベル，x座標，y座標の順番になっている） */
 	static int TEST_DATA[][] = {
 			{-1, 540, 227},
 			{-1, 550, 114},
@@ -44,15 +51,23 @@ public class TestProject {
 			{1, 222, 94},
 	};
 
+	/**
+	 * バッチ学習用メソッド
+	 * @param logic
+	 */
 	static void classify(ClassifyLogic logic) {
+		// ロジックに学習用教師データを与える
 		for(int[] data : TEST_DATA) {
 			logic.add(data[0], data[1], data[2]);
 		}
 
+		// 教師データを元に学習させる
 		logic.analyze();
 
+		// 学習した結果を受け取る
 		double[] params = logic.getParameters();
 
+		// 確認用に出力
 		StringJoiner sj = new StringJoiner("\t", "params=[", "]");
 		for(double p : params)
 			sj.add(""+p);
@@ -60,28 +75,42 @@ public class TestProject {
 		System.out.println();
 	}
 
+	/**
+	 * オンライン用学習メソッド
+	 * @param algo 学習アルゴリズム
+	 */
 	static void classify_online(OnlineAlgorithm algo) {
 		List<Integer[]> list = new ArrayList<>();
-
+		// 教師データをリスト形式で作成
 		for(int[] data : TEST_DATA) {
 			Integer[] elem = new Integer[data.length];
 			for(int n=0 ; n<data.length ; n++) elem[n] = data[n];
 			list.add(elem);
 		}
+
+		// ムラが出来ないようにシャッフル
 		Collections.shuffle(list);
 
+		// 1つづつ学習させる
 		for(Integer[] data : list) {
+			// 学習用教師データを作成
 			double[] d = new double[3];
-			StringJoiner joiner = new StringJoiner(",", "[", "]");
-			d[0] = 1.0;
+			d[0] = 1.0;		// 定数項
 			for(int n=1 ; n<d.length ; n++) {
 				d[n] = data[n];
-				joiner.add(""+d[n]);
 			}
+			// 実行
 			int result = algo.predict(d);
-			joiner.add(""+result);
+
+			// 結果と正解を与えて，再学習させる
 			algo.refine(data[0], d);
-			//System.out.println(data[0] + " : " + joiner.toString());
+			/*
+			StringJoiner joiner = new StringJoiner(",", "[", "]");
+			for(double x : d)
+				joiner.add(""+x);
+			joiner.add(""+result);
+			System.out.println(data[0] + " : " + joiner.toString());
+			*/
 		}
 		double[] params = algo.getParameters();
 
@@ -92,31 +121,59 @@ public class TestProject {
 
 	}
 
+	/**
+	 * 線形回帰
+	 */
 	static void Regression() {
 		System.out.println("* * * * LinearRegression * * * *");
 		classify(new LinearRegression());
 		System.out.println();
 	}
 
+	/**
+	 * Coordinate Descent法による学習（SVM）
+	 * @param margin ソフトマージン
+	 * @param permit 終了条件の許容誤差
+	 * @param epoch エポック数
+	 */
 	static void SVM_CDM(double margin, double permit, int epoch) {
 		System.out.println("* * * * SupportVectorMachine CDM(C="+margin+"/permit="+permit+"/epoch"+epoch+") * * * *");
 		classify(new SupportVectorMachine(margin, permit, epoch));
 	}
 
+	/**
+	 * Coordinate Descent法による学習（SVM）
+	 * @param margin ソフトマージン
+	 * @param permit 終了条件の許容誤差
+	 */
 	static void SVM_CDM(double margin, double permit) {
 		SVM_CDM(margin, permit, 100);
 	}
 
+	/**
+	 * SMO(Sequential Minimal Optimization)による学習（SVM）
+	 * @param softMarginPermit ソフトマージン
+	 * @param permit 終了条件の許容誤差
+	 */
 	static void SVM_SMO(double softMarginPermit, double permit) {
 		System.out.println("* * * * SupportVectorMachine SMO(softMargin/Permit="+softMarginPermit+"/permit"+permit+") * * * *");
 		classify(new SequentialMinimalOptimization(softMarginPermit, permit));
 	}
 
+	/**
+	 * Passive-Aggressive Algorithmsによるオンライン学習
+	 * @param C ソフトマージン
+	 * @param type PAアルゴリズムの種類（ハードマージン，ソフトマージン[1,2]）
+	 */
 	static void PA(double C, PAType type) {
 		System.out.println("* * * * Passive-Aggressive Algorithm (type="+type+"/C="+C+") * * * *");
 		classify_online(new PossiveAggressiveAlgorithm(2, type, C));
 	}
 
+	/**
+	 * エントリポイント
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		// 線形回帰
 		Regression();
