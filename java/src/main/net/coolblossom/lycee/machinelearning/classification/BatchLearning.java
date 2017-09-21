@@ -8,7 +8,7 @@ import net.coolblossom.lycee.machinelearning.classification.scale.DefaultRescale
 
 /**
  * バッチ学習
- * 
+ *
  * @author ryouka0122@github
  *
  */
@@ -33,8 +33,18 @@ public abstract class BatchLearning extends AbstractClassifier {
 	}
 
 	/**
+	 * データの追加
+	 *
+	 * @param dataSet
+	 *            データセット
+	 */
+	public void add(DataSet dataSet) {
+		this.dataset.add(dataSet);
+	}
+
+	/**
 	 * データの追加（y,x1,x2の順番）
-	 * 
+	 *
 	 * @param y
 	 *            ラベル
 	 * @param x1
@@ -48,7 +58,7 @@ public abstract class BatchLearning extends AbstractClassifier {
 
 	/**
 	 * データセットのリストのバラ付きを抑制するためにリスケールしたものを取得するメソッド
-	 * 
+	 *
 	 * @return リスケールしたあとのデータセットのリスト
 	 */
 	public List<DataSet> getDataSetList() {
