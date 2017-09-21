@@ -1,8 +1,16 @@
 package net.coolblossom.lycee.machinelearning.classification.batch;
 
+import java.util.List;
+
 import net.coolblossom.lycee.machinelearning.classification.BatchLearning;
 import net.coolblossom.lycee.machinelearning.classification.DataSet;
+import net.coolblossom.lycee.machinelearning.classification.scale.DataSetRescaler;
 
+/**
+ * ２変数の線形分類器
+ * @author ryouka0122@github
+ *
+ */
 public class LinearRegression extends BatchLearning {
 
 	static final int IDX_Y = 0;
@@ -13,9 +21,14 @@ public class LinearRegression extends BatchLearning {
 		super(3);
 	}
 
+	public LinearRegression(DataSetRescaler rescaler) {
+		super(3, rescaler);
+	}
+
 	@Override
 	public void analyze() {
-		int N = dataset.size();
+		List<DataSet> list = getDataSetList();
+		int N = list.size();
 
 		double a=0;
 		double b=0;
@@ -26,7 +39,7 @@ public class LinearRegression extends BatchLearning {
 		double y2=0;
 		double y3=0;
 
-		for(DataSet data : dataset) {
+		for(DataSet data : list) {
 			a += data.x[IDX_X1];
 			b += data.x[IDX_X2];
 			c += data.x[IDX_X1]*data.x[IDX_X2];

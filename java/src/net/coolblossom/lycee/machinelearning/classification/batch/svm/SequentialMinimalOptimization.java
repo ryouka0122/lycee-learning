@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.coolblossom.lycee.machinelearning.classification.DataSet;
-import net.coolblossom.lycee.machinelearning.classification.kernels.InnerProduct;
+import net.coolblossom.lycee.machinelearning.classification.kernels.LinearKernel;
 import net.coolblossom.lycee.machinelearning.classification.kernels.Kernel;
 
 /**
@@ -29,9 +29,16 @@ public class SequentialMinimalOptimization extends SVMOptimizer {
 	 * @param permit
 	 */
 	public SequentialMinimalOptimization(int dimension, double margin, double permit) {
-		this(dimension, margin, permit, new InnerProduct());
+		this(dimension, margin, permit, new LinearKernel());
 	}
 
+	/**
+	 *
+	 * @param dimension
+	 * @param margin
+	 * @param permit
+	 * @param kernel
+	 */
 	public SequentialMinimalOptimization(int dimension, double margin, double permit, Kernel kernel) {
 		super(dimension, margin, permit);
 		this.splitSize = 2;

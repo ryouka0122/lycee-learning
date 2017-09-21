@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import net.coolblossom.lycee.machinelearning.classification.BatchLearning;
+import net.coolblossom.lycee.machinelearning.classification.DataSet;
 import net.coolblossom.lycee.machinelearning.classification.OnlineLearning;
 import net.coolblossom.lycee.machinelearning.classification.batch.LinearRegression;
 import net.coolblossom.lycee.machinelearning.classification.batch.svm.DualCoordinateDescent;
@@ -13,6 +14,7 @@ import net.coolblossom.lycee.machinelearning.classification.batch.svm.Sequential
 import net.coolblossom.lycee.machinelearning.classification.batch.svm.SupportVectorMachine;
 import net.coolblossom.lycee.machinelearning.classification.online.PAType;
 import net.coolblossom.lycee.machinelearning.classification.online.PossiveAggressiveAlgorithm;
+import net.coolblossom.lycee.machinelearning.classification.scale.ResizeRescaler;
 
 /**
  * テストプログラム
@@ -22,7 +24,7 @@ import net.coolblossom.lycee.machinelearning.classification.online.PossiveAggres
 public class TestProject {
 
 	/** 教師データ（ラベル，x座標，y座標の順番になっている） */
-	static int TEST_DATA[][] = {
+	static double TEST_DATA[][] = {
 			{-1, 540, 227},
 			{-1, 550, 114},
 			{-1, 512, 340},
@@ -58,7 +60,7 @@ public class TestProject {
 	 */
 	static void classify_batch(BatchLearning batchAlgorithm) {
 		// ロジックに学習用教師データを与える
-		for(int[] data : TEST_DATA) {
+		for(double[] data : TEST_DATA) {
 			batchAlgorithm.add(data[0], data[1], data[2]);
 		}
 
@@ -73,6 +75,19 @@ public class TestProject {
 		for(double p : params)
 			sj.add(""+p);
 		System.out.println(sj);
+
+		System.out.println("---------------------------------------------------");
+		System.out.println(" test");
+		int success=0;
+		for(DataSet dataSet : batchAlgorithm.getDataSetList()) {
+			double result = batchAlgorithm.predict(dataSet.x);
+			int sign = (result >= 0 ? 1 : -1);
+			if(sign == dataSet.y) success++;
+			System.out.println(String.format("%s : %d(%f) <-> %f",
+					sign==dataSet.y ? "o" : "x", sign, result, dataSet.y));
+		}
+		System.out.println("success "+success+" / " + TEST_DATA.length);
+
 		System.out.println();
 	}
 
@@ -81,20 +96,18 @@ public class TestProject {
 	 * @param algo 学習アルゴリズム
 	 */
 	static void classify_online(OnlineLearning onlineAlgorithm) {
-		List<Integer[]> list = new ArrayList<>();
+		List<double[]> list = new ArrayList<>();
 		// 教師データをリスト形式で作成
-		for(int[] data : TEST_DATA) {
-			Integer[] elem = new Integer[data.length];
-			for(int n=0 ; n<data.length ; n++) elem[n] = data[n];
-			list.add(elem);
+		for(double[] data : TEST_DATA) {
+			list.add(data);
 		}
 
 		// ムラが出来ないようにシャッフル
 		Collections.shuffle(list);
 
 		// 1つづつ学習させる
-		for(Integer[] data : list) {
-			// 学習用教師データを作成
+		for(double[] data : list) {
+			// 教師データの作成
 			double[] d = new double[3];
 			d[0] = 1.0;		// バイアス項
 			for(int n=1 ; n<d.length ; n++) {
@@ -103,8 +116,10 @@ public class TestProject {
 			// 実行
 			double result = onlineAlgorithm.predict(d);
 
-			// 結果と正解を与えて，再学習させる
-			onlineAlgorithm.refine(data[0], d);
+			if(result * data[0] < 0) {
+				// 結果と正解比べて，間違っていたら，再学習させる
+				onlineAlgorithm.refine(data[0], d);
+			}
 			/*
 			StringJoiner joiner = new StringJoiner(",", "[", "]");
 			for(double x : d)
@@ -127,7 +142,7 @@ public class TestProject {
 	 */
 	static void Regression() {
 		System.out.println("* * * * LinearRegression * * * *");
-		classify_batch(new LinearRegression());
+		classify_batch(new LinearRegression(new ResizeRescaler()));
 		System.out.println();
 	}
 
@@ -165,6 +180,7 @@ public class TestProject {
 		classify_batch(
 				new SupportVectorMachine(
 						new SequentialMinimalOptimization(3, softMarginPermit, permit)
+						, new ResizeRescaler()
 				)
 		);
 	}
@@ -188,17 +204,19 @@ public class TestProject {
 		Regression();
 
 		// [バッチ学習] 座標降下法によるSVM
-		SVM_CDM(1.0, 0.1e-2, 2000);
+		SVM_CDM(1.0, 1e-2, 2000);
+		/*
+		SVM_CDM(1.0, 1e-2, 1);
+		SVM_CDM(1.0, 1e-2, 10);
+		SVM_CDM(1.0, 1e-2, 100);
+		SVM_CDM(1.0, 1e-2, 1000);
 		//SVM_CDM(1.0, 0.1e-4, 1000);
 
-/*
 		// [バッチ学習] SMOによる分類器
-		SVM_SMO(1000, 1.0e-5);
-		SVM_SMO(10, 1.0e-5);
-		SVM_SMO( 8, 1.0e-5);
-		SVM_SMO( 6, 1.0e-5);
-		SVM_SMO( 4, 1.0e-5);
-		SVM_SMO( 2, 1.0e-5);
+		SVM_SMO(1000, 1.0e-2);
+		SVM_SMO( 100, 1.0e-2);
+		SVM_SMO(  10, 1.0e-2);
+		SVM_SMO(   1, 1.0e-2);
 
 		// [オンライン学習] PAアルゴリズム
 		for(PAType type : new PAType []{

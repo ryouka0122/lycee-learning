@@ -4,13 +4,14 @@ public class CalcUtil {
 
 	/**
 	 * 内積計算
+	 * 
 	 * @param lhs
 	 * @param rhs
 	 * @return
 	 */
 	static public double innerProduct(double[] lhs, double[] rhs) {
 		double result = 0.0;
-		for(int i=0 ; i<lhs.length ; i++)  {
+		for (int i = 0; i < lhs.length; i++) {
 			result += lhs[i] * rhs[i];
 		}
 		return result;

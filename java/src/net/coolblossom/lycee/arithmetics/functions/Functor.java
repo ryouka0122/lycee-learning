@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 /**
  * ファンクタの基底クラス
+ * 
  * @author ryouka0122@github
  *
  */
@@ -17,18 +18,20 @@ public abstract class Functor implements Calculator {
 
 	/**
 	 * Constructor
+	 * 
 	 * @param dimension
 	 */
 	public Functor(int dimension) {
-		if(dimension < 1) {
-			throw new IllegalArgumentException("dimensionは1以上でないといけません[dimension="+dimension+"]");
+		if (dimension < 1) {
+			throw new IllegalArgumentException("dimensionは1以上でないといけません[dimension=" + dimension + "]");
 		}
 		this.dimension = dimension;
-		this.parameters = Stream.iterate(0.0, t->t).limit(1+dimension).mapToDouble(t->t).toArray();
+		this.parameters = Stream.iterate(0.0, t -> t).limit(1 + dimension).mapToDouble(t -> t).toArray();
 	}
 
 	/**
 	 * 次数の取得
+	 * 
 	 * @return
 	 */
 	public int getDimension() {
@@ -37,7 +40,9 @@ public abstract class Functor implements Calculator {
 
 	/**
 	 * パラメータの設定
-	 * @param parameters 新規パラメータ
+	 * 
+	 * @param parameters
+	 *            新規パラメータ
 	 * @return 更新前パラメータ
 	 */
 	public double[] setParameters(double[] parameters) {
@@ -48,11 +53,11 @@ public abstract class Functor implements Calculator {
 
 	/**
 	 * パラメータの取得
+	 * 
 	 * @return 現在のパラメータ
 	 */
 	public double[] getParameters() {
 		return this.parameters;
 	}
-
 
 }
