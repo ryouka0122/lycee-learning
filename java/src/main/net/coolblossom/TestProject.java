@@ -23,36 +23,36 @@ import net.coolblossom.lycee.machinelearning.classification.scale.ResizeRescaler
  */
 public class TestProject {
 
-	/** 教師データ（ラベル，x座標，y座標の順番になっている） */
-	static double TEST_DATA[][] = {
-			{-1, 540, 227},
-			{-1, 550, 114},
-			{-1, 512, 340},
-			{-1, 467, 401},
-			{-1, 511,  94},
-			{-1, 489, 160},
-			{-1, 467, 254},
-			{-1, 447, 320},
-			{-1, 394, 377},
-			{-1, 342, 440},
-			{-1, 481, 493},
-			{-1, 658, 488},
-			{-1, 689, 436},
-			{-1, 698, 290},
-			{-1, 668, 233},
+	/** 教師データ（ラベル，バイアス, x座標，y座標の順番になっている） */
+	static List<DataSet> TEST_DATA = new ArrayList<DataSet>() {{
+			add(new DataSet(-1.0,  1.0, 540.0, 227.0));
+			add(new DataSet(-1.0, 1.0, 550.0, 114.0));
+			add(new DataSet(-1.0, 1.0, 512.0, 340.0));
+			add(new DataSet(-1.0, 1.0, 467.0, 401.0));
+			add(new DataSet(-1.0, 1.0, 511.0,  94.0));
+			add(new DataSet(-1.0, 1.0, 489.0, 160.0));
+			add(new DataSet(-1.0, 1.0, 467.0, 254.0));
+			add(new DataSet(-1.0, 1.0, 447.0, 320.0));
+			add(new DataSet(-1.0, 1.0, 394.0, 377.0));
+			add(new DataSet(-1.0, 1.0, 342.0, 440.0));
+			add(new DataSet(-1.0, 1.0, 481.0, 493.0));
+			add(new DataSet(-1.0, 1.0, 658.0, 488.0));
+			add(new DataSet(-1.0, 1.0, 689.0, 436.0));
+			add(new DataSet(-1.0, 1.0, 698.0, 290.0));
+			add(new DataSet(-1.0, 1.0, 668.0, 233.0));
 
-			{1, 408, 117},
-			{1, 296, 163},
-			{1, 337, 241},
-			{1, 313, 338},
-			{1, 300, 361},
-			{1, 221, 371},
-			{1, 179, 428},
-			{1, 244, 374},
-			{1, 240, 244},
-			{1, 228, 168},
-			{1, 222, 94},
-	};
+			add(new DataSet(1.0, 1.0, 408.0, 117.0));
+			add(new DataSet(1.0, 1.0, 296.0, 163.0));
+			add(new DataSet(1.0, 1.0, 337.0, 241.0));
+			add(new DataSet(1.0, 1.0, 313.0, 338.0));
+			add(new DataSet(1.0, 1.0, 300.0, 361.0));
+			add(new DataSet(1.0, 1.0, 221.0, 371.0));
+			add(new DataSet(1.0, 1.0, 179.0, 428.0));
+			add(new DataSet(1.0, 1.0, 244.0, 374.0));
+			add(new DataSet(1.0, 1.0, 240.0, 244.0));
+			add(new DataSet(1.0, 1.0, 228.0, 168.0));
+			add(new DataSet(1.0, 1.0, 222.0,  94.0));
+	}};
 
 	/**
 	 * バッチ学習用メソッド
@@ -60,8 +60,8 @@ public class TestProject {
 	 */
 	static void classify_batch(BatchLearning batchAlgorithm) {
 		// ロジックに学習用教師データを与える
-		for(double[] data : TEST_DATA) {
-			batchAlgorithm.add(data[0], data[1], data[2]);
+		for(DataSet dataSet : TEST_DATA) {
+			batchAlgorithm.add(dataSet);
 		}
 
 		// 教師データを元に学習させる
@@ -76,6 +76,7 @@ public class TestProject {
 			sj.add(""+p);
 		System.out.println(sj);
 
+		// ▼▼ 検証用 ▼▼
 		System.out.println("---------------------------------------------------");
 		System.out.println(" test");
 		int success=0;
@@ -86,7 +87,8 @@ public class TestProject {
 			System.out.println(String.format("%s : %d(%f) <-> %f",
 					sign==dataSet.y ? "o" : "x", sign, result, dataSet.y));
 		}
-		System.out.println("success "+success+" / " + TEST_DATA.length);
+		System.out.println("success "+success+" / " + TEST_DATA.size());
+		// ▲▲ 検証用 ▲▲
 
 		System.out.println();
 	}
@@ -96,31 +98,23 @@ public class TestProject {
 	 * @param algo 学習アルゴリズム
 	 */
 	static void classify_online(OnlineLearning onlineAlgorithm) {
-		List<double[]> list = new ArrayList<>();
 		// 教師データをリスト形式で作成
-		for(double[] data : TEST_DATA) {
-			list.add(data);
-		}
+		List<DataSet> list = new ArrayList<>(TEST_DATA);
 
 		// ムラが出来ないようにシャッフル
 		Collections.shuffle(list);
 
 		// 1つづつ学習させる
-		for(double[] data : list) {
-			// 教師データの作成
-			double[] d = new double[3];
-			d[0] = 1.0;		// バイアス項
-			for(int n=1 ; n<d.length ; n++) {
-				d[n] = data[n];
-			}
+		for(DataSet data : list) {
 			// 実行
-			double result = onlineAlgorithm.predict(d);
+			double result = onlineAlgorithm.predict(data.x);
 
-			if(result * data[0] < 0) {
+			// 結果確認（）
+			if(result * data.y < 0) {	// 結果と教師の符号が一緒の場合予測成功
 				// 結果と正解比べて，間違っていたら，再学習させる
-				onlineAlgorithm.refine(data[0], d);
+				onlineAlgorithm.refine(data.y, data.x);
 			}
-			/*
+			/* デバッグ用
 			StringJoiner joiner = new StringJoiner(",", "[", "]");
 			for(double x : d)
 				joiner.add(""+x);
@@ -180,7 +174,7 @@ public class TestProject {
 		classify_batch(
 				new SupportVectorMachine(
 						new SequentialMinimalOptimization(3, softMarginPermit, permit)
-						, new ResizeRescaler()
+						, new ResizeRescaler()	// 取り扱うデータを正規化
 				)
 		);
 	}
@@ -204,6 +198,9 @@ public class TestProject {
 		Regression();
 
 		// [バッチ学習] 座標降下法によるSVM
+		SVM_CDM(1.0, 1e-2, 2000);
+		SVM_CDM(1.0, 1e-2, 2000);
+		SVM_CDM(1.0, 1e-2, 2000);
 		SVM_CDM(1.0, 1e-2, 2000);
 		/*
 		SVM_CDM(1.0, 1e-2, 1);
