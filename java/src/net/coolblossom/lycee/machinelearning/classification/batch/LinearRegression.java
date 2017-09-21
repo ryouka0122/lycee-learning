@@ -1,13 +1,17 @@
 package net.coolblossom.lycee.machinelearning.classification.batch;
 
-import net.coolblossom.lycee.machinelearning.classification.ClassifyLogic;
+import net.coolblossom.lycee.machinelearning.classification.BatchLearning;
 import net.coolblossom.lycee.machinelearning.classification.DataSet;
 
-public class LinearRegression extends ClassifyLogic {
+public class LinearRegression extends BatchLearning {
 
 	static final int IDX_Y = 0;
 	static final int IDX_X1 = 1;
 	static final int IDX_X2 = 2;
+
+	public LinearRegression() {
+		super(3);
+	}
 
 	@Override
 	public void analyze() {
@@ -23,7 +27,7 @@ public class LinearRegression extends ClassifyLogic {
 		double y3=0;
 
 		for(DataSet data : dataset) {
-			a += data.x[1];
+			a += data.x[IDX_X1];
 			b += data.x[IDX_X2];
 			c += data.x[IDX_X1]*data.x[IDX_X2];
 			d += data.x[IDX_X1]*data.x[IDX_X1];

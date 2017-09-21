@@ -1,45 +1,53 @@
-package net.coolblossom.lycee.machinelearning.classification.batch;
+package net.coolblossom.lycee.machinelearning.classification.batch.svm;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.coolblossom.lycee.machinelearning.classification.ClassifyLogic;
 import net.coolblossom.lycee.machinelearning.classification.DataSet;
 import net.coolblossom.lycee.machinelearning.classification.kernels.InnerProduct;
 import net.coolblossom.lycee.machinelearning.classification.kernels.Kernel;
 
-public class SequentialMinimalOptimization extends ClassifyLogic {
+/**
+ * SMOアルゴリズム
+ * @author ryouka0122@github
+ *
+ */
+public class SequentialMinimalOptimization extends SVMOptimizer {
 
-	/** ソフトマージンのレンジ */
-	private double softMarginPermit;
-
-	/** 部分集合にさせる分解数 */
+	/** データ分割数 */
 	private int splitSize;
-
-	/** 停止条件の許容誤差 */
-	private double permit;
 
 	/** カーネル */
 	private Kernel kernel;
 
-	public SequentialMinimalOptimization(double softMarginPermit, double permit) {
-		this(2, softMarginPermit, permit, new InnerProduct());
-
+	/**
+	 * コンストラクタ
+	 * @param dimension
+	 * @param margin
+	 * @param permit
+	 */
+	public SequentialMinimalOptimization(int dimension, double margin, double permit) {
+		this(dimension, margin, permit, new InnerProduct());
 	}
 
-	public SequentialMinimalOptimization(int splitSize, double softMarginPermit, double permit, Kernel kernel) {
+	public SequentialMinimalOptimization(int dimension, double margin, double permit, Kernel kernel) {
+		super(dimension, margin, permit);
 		this.splitSize = 2;
-		this.softMarginPermit = softMarginPermit;
-		this.permit = permit;
 		this.kernel = kernel;
 	}
 
 	@Override
-	public void analyze() {
-		int N = dataset.size();
-		if(N==0) return;
+	public double[] optimize(List<DataSet> dataSetList) {
+		double[] parameters = new double[dimension];
+		for(int n=0 ; n<parameters.length ; n++) {
+			parameters[n] = 0.0;
+		}
+		int N = dataSetList.size();
+		if(N==0) {
+			return parameters;
+		}
 
 		double C = this.softMarginPermit;
 		double a[];
@@ -50,18 +58,19 @@ public class SequentialMinimalOptimization extends ClassifyLogic {
 		}
 
 		// 学習データの部分集合を生成
-		List<List<Integer>> partialDataSet = createPartialDataSetList();
+		List<Set<Integer>> partialDataSet = createPartialDataSetList(dataSetList);
 
 		int nowIndex=0;
 
 		// 最初の集合
-		List<Integer> nowDataSet = partialDataSet.get(0);
+		Set<Integer> nowDataSet = partialDataSet.get(0);
 		do {
 			// 処理変数の初期設定
-			int idx1 = nowDataSet.get(0);
-			int idx2 = nowDataSet.get(1);
-			DataSet ds1 = dataset.get(idx1);
-			DataSet ds2 = dataset.get(idx2);
+			Integer[] dataSetArray = nowDataSet.stream().toArray(Integer[]::new);
+			int idx1 = dataSetArray[0];
+			int idx2 = dataSetArray[1];
+			DataSet ds1 = dataSetList.get(idx1);
+			DataSet ds2 = dataSetList.get(idx2);
 			a_before = a.clone();
 
 			// カーネル計算
@@ -72,7 +81,7 @@ public class SequentialMinimalOptimization extends ClassifyLogic {
 			double v1 = -ds1.y;
 			double v2 = -ds2.y;
 			for(int i=0 ; i<N ; i++) {
-				DataSet data = dataset.get(i);
+				DataSet data = dataSetList.get(i);
 				v1 += data.y * a[i] * kernel.calc(ds1.x, data.x);
 				v2 += data.y * a[i] * kernel.calc(ds2.x, data.x);
 			}
@@ -120,46 +129,48 @@ public class SequentialMinimalOptimization extends ClassifyLogic {
 			// 終了条件
 		}while( isContinue(a, a_before) || nowDataSet!=null );
 
-		for(int n=0 ; n<this.parameters.length ; n++) {
-			parameters[n] = 0.0;
-		}
+		// 重みパラメータの算出
+
 		Set<Integer> supportVector = new HashSet<Integer>();
 		for(int i=0 ;i<N ; i++) {
-			if(0<a[i]  && a[i] < C) {
+			if(0.0 < a[i]  && a[i] < C) {
+				// ボックス制約内にあるデータはサポートベクターと認識される
 				supportVector.add(i);
-				DataSet data = dataset.get(i);
-				for(int n=0 ; n<parameters.length ; n++) {
+				DataSet data = dataSetList.get(i);
+				for(int n=1 ; n<parameters.length ; n++) {
 					parameters[n] += a[i] * data.y * data.x[n];
 				}
 			}
 		}
 
 		double w0 = 0.0;
-		for(Integer i : supportVector) {
-			DataSet dsi = dataset.get(i);
-			double v = dsi.y;
-			for(Integer j : supportVector) {
-				DataSet dsj = dataset.get(j);
-				v -= dsj.y * a[j] * kernel.calc(dsi.x, dsj.x);
+		for(Integer m : supportVector) {
+			DataSet ds_m = dataSetList.get(m);
+			double v = 0.0;
+			for(Integer n : supportVector) {
+				DataSet ds_n = dataSetList.get(n);
+				v += a[n] * ds_n.y * kernel.calc(ds_m.x, ds_n.x);
 			}
-			w0 += v;
+			w0 += ds_m.y - v;
 		}
 		parameters[0] = w0 / supportVector.size();
+
+		return parameters;
 	}
 
 	/**
 	 * 部分集合の作成
 	 * @return 部分集合を表現したデータセットリストのリスト
 	 */
-	private List<List<Integer>> createPartialDataSetList() {
-		List<List<Integer>> result = new ArrayList<List<Integer>>();
-		List<Integer> partial = new ArrayList<Integer>();
+	private List<Set<Integer>> createPartialDataSetList(List<DataSet> dataset) {
+		List<Set<Integer>> result = new ArrayList<Set<Integer>>();
+		Set<Integer> partial = new HashSet<Integer>();
 
 		for(int i=0 ; i<dataset.size() ; i++) {
 			partial.add(i);
 			if(partial.size()==splitSize) {
 				result.add(partial);
-				partial = new ArrayList<Integer>();
+				partial = new HashSet<Integer>();
 			}
 		}
 		if(partial.size()>0) {
@@ -183,11 +194,11 @@ public class SequentialMinimalOptimization extends ClassifyLogic {
 	}
 
 
-	private int selectNextDataSetIndex(List<List<Integer>> partialDataSet, double[] a, int j) {
+	private int selectNextDataSetIndex(List<Set<Integer>> partialDataSet, double[] a, int j) {
 		return j+1;
 	}
 
-	private List<Integer> selectNextDataSetList(List<List<Integer>> partialDataSet, double[] a, int j) {
+	private Set<Integer> selectNextDataSetList(List<Set<Integer>> partialDataSet, double[] a, int j) {
 		if(j<0 || j>=partialDataSet.size()) {
 			return null;
 		}

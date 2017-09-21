@@ -1,5 +1,6 @@
 package net.coolblossom.lycee.machinelearning.classification.online;
 
+import net.coolblossom.lycee.machinelearning.classification.OnlineLearning;
 import net.coolblossom.lycee.machinelearning.classification.loss.LossLogic;
 
 /**
@@ -7,7 +8,7 @@ import net.coolblossom.lycee.machinelearning.classification.loss.LossLogic;
  * @author ryouka0122@github
  *
  */
-public class PossiveAggressiveAlgorithm extends OnlineAlgorithm {
+public class PossiveAggressiveAlgorithm extends OnlineLearning {
 
 	// PAのバリエーション
 	private PAType type;

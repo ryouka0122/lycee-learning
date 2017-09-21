@@ -1,5 +1,10 @@
 package net.coolblossom.lycee.machinelearning.classification.kernels;
 
+/**
+ * 内積計算するカーネル
+ * @author ryouka0122@github
+ *
+ */
 public class InnerProduct implements Kernel {
 
 	@Override

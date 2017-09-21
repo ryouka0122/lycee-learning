@@ -1,15 +1,29 @@
 package net.coolblossom.lycee.machinelearning.classification;
 
+/**
+ * 学習用データセット
+ * @author ryouka0122@github
+ *
+ */
 public class DataSet {
+	/** データ次元数(バイアス項を含む数) */
+	static final int DATA_DIMENSION = 3;
+
+	/** ラベル */
 	public double y;
 
+	/** 観測データ */
 	public double[] x;
 
-	public DataSet(double y, double x1, double x2) {
+	/**
+	 * コンストラクタ
+	 * @param y ラベル
+	 * @param data バイアスを含む観測データ
+	 */
+	public DataSet(double y, double ...data) {
 		this.y = y;
-		this.x = new double[3];
-		this.x[0] = 1.0;
-		this.x[1] = x1;
-		this.x[2] = x2;
+		if(DATA_DIMENSION!=data.length)
+			throw new IllegalArgumentException();
+		this.x = data;
 	}
 }

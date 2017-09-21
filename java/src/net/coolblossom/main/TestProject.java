@@ -5,11 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
-import net.coolblossom.lycee.machinelearning.classification.ClassifyLogic;
+import net.coolblossom.lycee.machinelearning.classification.BatchLearning;
+import net.coolblossom.lycee.machinelearning.classification.OnlineLearning;
 import net.coolblossom.lycee.machinelearning.classification.batch.LinearRegression;
-import net.coolblossom.lycee.machinelearning.classification.batch.SequentialMinimalOptimization;
-import net.coolblossom.lycee.machinelearning.classification.batch.SupportVectorMachine;
-import net.coolblossom.lycee.machinelearning.classification.online.OnlineAlgorithm;
+import net.coolblossom.lycee.machinelearning.classification.batch.svm.DualCoordinateDescent;
+import net.coolblossom.lycee.machinelearning.classification.batch.svm.SequentialMinimalOptimization;
+import net.coolblossom.lycee.machinelearning.classification.batch.svm.SupportVectorMachine;
 import net.coolblossom.lycee.machinelearning.classification.online.PAType;
 import net.coolblossom.lycee.machinelearning.classification.online.PossiveAggressiveAlgorithm;
 
@@ -55,17 +56,17 @@ public class TestProject {
 	 * バッチ学習用メソッド
 	 * @param logic
 	 */
-	static void classify(ClassifyLogic logic) {
+	static void classify_batch(BatchLearning batchAlgorithm) {
 		// ロジックに学習用教師データを与える
 		for(int[] data : TEST_DATA) {
-			logic.add(data[0], data[1], data[2]);
+			batchAlgorithm.add(data[0], data[1], data[2]);
 		}
 
 		// 教師データを元に学習させる
-		logic.analyze();
+		batchAlgorithm.analyze();
 
 		// 学習した結果を受け取る
-		double[] params = logic.getParameters();
+		double[] params = batchAlgorithm.getParameters();
 
 		// 確認用に出力
 		StringJoiner sj = new StringJoiner("\t", "params=[", "]");
@@ -79,7 +80,7 @@ public class TestProject {
 	 * オンライン用学習メソッド
 	 * @param algo 学習アルゴリズム
 	 */
-	static void classify_online(OnlineAlgorithm algo) {
+	static void classify_online(OnlineLearning onlineAlgorithm) {
 		List<Integer[]> list = new ArrayList<>();
 		// 教師データをリスト形式で作成
 		for(int[] data : TEST_DATA) {
@@ -95,15 +96,15 @@ public class TestProject {
 		for(Integer[] data : list) {
 			// 学習用教師データを作成
 			double[] d = new double[3];
-			d[0] = 1.0;		// 定数項
+			d[0] = 1.0;		// バイアス項
 			for(int n=1 ; n<d.length ; n++) {
 				d[n] = data[n];
 			}
 			// 実行
-			int result = algo.predict(d);
+			double result = onlineAlgorithm.predict(d);
 
 			// 結果と正解を与えて，再学習させる
-			algo.refine(data[0], d);
+			onlineAlgorithm.refine(data[0], d);
 			/*
 			StringJoiner joiner = new StringJoiner(",", "[", "]");
 			for(double x : d)
@@ -112,7 +113,7 @@ public class TestProject {
 			System.out.println(data[0] + " : " + joiner.toString());
 			*/
 		}
-		double[] params = algo.getParameters();
+		double[] params = onlineAlgorithm.getParameters();
 
 		StringJoiner sj = new StringJoiner("\t", "params=[", "]");
 		for(double p : params) sj.add(""+p);
@@ -126,7 +127,7 @@ public class TestProject {
 	 */
 	static void Regression() {
 		System.out.println("* * * * LinearRegression * * * *");
-		classify(new LinearRegression());
+		classify_batch(new LinearRegression());
 		System.out.println();
 	}
 
@@ -137,8 +138,12 @@ public class TestProject {
 	 * @param epoch エポック数
 	 */
 	static void SVM_CDM(double margin, double permit, int epoch) {
-		System.out.println("* * * * SupportVectorMachine CDM(C="+margin+"/permit="+permit+"/epoch"+epoch+") * * * *");
-		classify(new SupportVectorMachine(margin, permit, epoch));
+		System.out.println("* * * * SupportVectorMachine CDM(C="+margin+"/permit="+permit+"/epoch="+epoch+") * * * *");
+		classify_batch(
+				new SupportVectorMachine(
+						new DualCoordinateDescent(3, margin, permit, epoch)
+				)
+		);
 	}
 
 	/**
@@ -147,7 +152,7 @@ public class TestProject {
 	 * @param permit 終了条件の許容誤差
 	 */
 	static void SVM_CDM(double margin, double permit) {
-		SVM_CDM(margin, permit, 100);
+		SVM_CDM(margin, permit, 1);
 	}
 
 	/**
@@ -157,13 +162,17 @@ public class TestProject {
 	 */
 	static void SVM_SMO(double softMarginPermit, double permit) {
 		System.out.println("* * * * SupportVectorMachine SMO(softMargin/Permit="+softMarginPermit+"/permit"+permit+") * * * *");
-		classify(new SequentialMinimalOptimization(softMarginPermit, permit));
+		classify_batch(
+				new SupportVectorMachine(
+						new SequentialMinimalOptimization(3, softMarginPermit, permit)
+				)
+		);
 	}
 
 	/**
 	 * Passive-Aggressive Algorithmsによるオンライン学習
 	 * @param C ソフトマージン
-	 * @param type PAアルゴリズムの種類（ハードマージン，ソフトマージン[1,2]）
+	 * @param type PAアルゴリズムの種類（PA/PA-I/PA-II）
 	 */
 	static void PA(double C, PAType type) {
 		System.out.println("* * * * Passive-Aggressive Algorithm (type="+type+"/C="+C+") * * * *");
@@ -175,26 +184,23 @@ public class TestProject {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// 線形回帰
+		// [バッチ学習] 線形回帰
 		Regression();
 
-/*
-		// 座標降下法によるSVM
-		SVM_CDM(1.0e-4, 0.1e-4);
-		SVM_CDM(1.0e-5, 0.1e-4);
-		SVM_CDM(1.0e-6, 0.1e-4);
-		SVM_CDM(1.0e-7, 0.1e-4);
-		SVM_CDM(1.0e-8, 0.1e-4);
+		// [バッチ学習] 座標降下法によるSVM
+		SVM_CDM(1.0, 0.1e-2, 2000);
+		//SVM_CDM(1.0, 0.1e-4, 1000);
 
-		// SMOによる分類器
+/*
+		// [バッチ学習] SMOによる分類器
 		SVM_SMO(1000, 1.0e-5);
 		SVM_SMO(10, 1.0e-5);
 		SVM_SMO( 8, 1.0e-5);
 		SVM_SMO( 6, 1.0e-5);
 		SVM_SMO( 4, 1.0e-5);
 		SVM_SMO( 2, 1.0e-5);
-*/
-		// 線形回帰
+
+		// [オンライン学習] PAアルゴリズム
 		for(PAType type : new PAType []{
 				PAType.PA,
 				//PAType.PA1,
@@ -208,6 +214,7 @@ public class TestProject {
 			PA(0.8, type);
 			PA(1.0, type);
 		}
+*/
 
 	}
 }

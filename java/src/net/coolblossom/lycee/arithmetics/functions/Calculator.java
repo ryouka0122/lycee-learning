@@ -7,6 +7,11 @@ package net.coolblossom.lycee.arithmetics.functions;
  */
 public interface Calculator {
 
+	/**
+	 * 演算
+	 * @param x 対象データ
+	 * @return 演算結果
+	 */
 	double calc(double[] x);
 
 }

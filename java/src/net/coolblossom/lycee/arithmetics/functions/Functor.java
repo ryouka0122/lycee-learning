@@ -9,7 +9,6 @@ import java.util.stream.Stream;
  */
 public abstract class Functor implements Calculator {
 
-
 	/** 次数 */
 	protected int dimension;
 
