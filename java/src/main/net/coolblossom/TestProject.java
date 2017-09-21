@@ -1,4 +1,4 @@
-package net.coolblossom.main;
+package net.coolblossom;
 
 import java.util.ArrayList;
 import java.util.Collections;
