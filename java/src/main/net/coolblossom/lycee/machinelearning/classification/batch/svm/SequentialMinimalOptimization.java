@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.coolblossom.lycee.machinelearning.classification.DataSet;
-import net.coolblossom.lycee.machinelearning.classification.kernels.LinearKernel;
-import net.coolblossom.lycee.machinelearning.classification.kernels.Kernel;
+import net.coolblossom.lycee.common.DataSet;
+import net.coolblossom.lycee.common.kernels.Kernel;
+import net.coolblossom.lycee.common.kernels.LinearKernel;
 
 /**
  * SMOアルゴリズム
@@ -98,28 +98,22 @@ public class SequentialMinimalOptimization extends SVMOptimizer {
 
 			// a2の更新振り分け（ボックス制約によるクリッピング処理）
 			double a2NEW;
+			double m, M;
 			if(ds1.y==ds2.y) {
-				double m = Math.min(C, a[idx1] + a[idx2]);
-				double M = Math.max(0, a[idx1] + a[idx2] - C);
-				if(m < a2new) {
-					a2NEW = m;
-				}else if(a2new < M) {
-					a2NEW = M;
-				}else{
-					/* m <= a2new <= M */
-					a2NEW = a2new;
-				}
+				m = Math.min(C, a[idx1] + a[idx2]);
+				M = Math.max(0, a[idx1] + a[idx2] - C);
 			}else{
-				double m = Math.min(C, C - a[idx1] + a[idx2]);
-				double M = Math.max(0, - a[idx1] + a[idx2]);
-				if(m < a2new) {
-					a2NEW = m;
-				}else if(a2new < M) {
-					a2NEW = M;
-				}else{
-					/* m <= a2new <= M */
-					a2NEW = a2new;
-				}
+				m = Math.min(C, C - a[idx1] + a[idx2]);
+				M = Math.max(0, - a[idx1] + a[idx2]);
+			}
+
+			if(m < a2new) {
+				a2NEW = m;
+			}else if(a2new < M) {
+				a2NEW = M;
+			}else{
+				/* m <= a2new <= M */
+				a2NEW = a2new;
 			}
 
 			// a1の更新処理

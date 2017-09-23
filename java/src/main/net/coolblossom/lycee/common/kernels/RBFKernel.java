@@ -1,4 +1,4 @@
-package net.coolblossom.lycee.machinelearning.classification.kernels;
+package net.coolblossom.lycee.common.kernels;
 
 /**
  * Radial Basis Function Kernel（RBF Kernel / Gaussian Kernel）

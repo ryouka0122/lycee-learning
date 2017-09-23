@@ -2,8 +2,8 @@ package net.coolblossom.lycee.machinelearning.classification;
 
 import java.util.stream.Stream;
 
-import net.coolblossom.lycee.machinelearning.classification.kernels.LinearKernel;
-import net.coolblossom.lycee.machinelearning.classification.kernels.Kernel;
+import net.coolblossom.lycee.common.kernels.Kernel;
+import net.coolblossom.lycee.common.kernels.LinearKernel;
 
 /**
  * 分類器の基底クラス

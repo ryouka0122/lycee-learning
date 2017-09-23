@@ -1,4 +1,4 @@
-package net.coolblossom.lycee.machinelearning.classification.kernels;
+package net.coolblossom.lycee.common.kernels;
 
 /**
  * SMOで使用するカーネル定義

@@ -1,4 +1,4 @@
-package net.coolblossom.lycee.machinelearning.classification.kernels;
+package net.coolblossom.lycee.common.kernels;
 
 /**
  * 内積計算するカーネル（線形カーネル）

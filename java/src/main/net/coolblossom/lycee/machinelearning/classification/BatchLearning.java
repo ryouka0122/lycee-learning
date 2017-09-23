@@ -3,6 +3,7 @@ package net.coolblossom.lycee.machinelearning.classification;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.coolblossom.lycee.common.DataSet;
 import net.coolblossom.lycee.machinelearning.classification.scale.DataSetRescaler;
 import net.coolblossom.lycee.machinelearning.classification.scale.DefaultRescaler;
 

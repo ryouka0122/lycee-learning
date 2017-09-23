@@ -1,7 +1,7 @@
 package net.coolblossom.lycee.machinelearning.classification.online;
 
-import net.coolblossom.lycee.machinelearning.classification.kernels.LinearKernel;
-import net.coolblossom.lycee.machinelearning.classification.kernels.Kernel;
+import net.coolblossom.lycee.common.kernels.Kernel;
+import net.coolblossom.lycee.common.kernels.LinearKernel;
 
 /**
  * Possive-Aggressive Algorithmのタイプ

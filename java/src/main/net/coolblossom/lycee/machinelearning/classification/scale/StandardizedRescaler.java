@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import net.coolblossom.lycee.machinelearning.classification.DataSet;
+import net.coolblossom.lycee.common.DataSet;
 
 /**
  * 標準化を行うリスケーラー

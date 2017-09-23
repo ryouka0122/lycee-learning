@@ -2,8 +2,8 @@ package net.coolblossom.lycee.machinelearning.classification.batch;
 
 import java.util.List;
 
+import net.coolblossom.lycee.common.DataSet;
 import net.coolblossom.lycee.machinelearning.classification.BatchLearning;
-import net.coolblossom.lycee.machinelearning.classification.DataSet;
 import net.coolblossom.lycee.machinelearning.classification.scale.DataSetRescaler;
 
 /**

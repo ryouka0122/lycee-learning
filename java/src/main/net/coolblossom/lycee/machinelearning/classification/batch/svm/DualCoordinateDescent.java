@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import net.coolblossom.lycee.machinelearning.classification.DataSet;
+import net.coolblossom.lycee.common.DataSet;
 
 /**
  * SVM用双対化座標降下法アルゴリズム

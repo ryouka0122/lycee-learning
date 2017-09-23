@@ -2,7 +2,7 @@ package net.coolblossom.lycee.machinelearning.classification.batch.svm;
 
 import java.util.List;
 
-import net.coolblossom.lycee.machinelearning.classification.DataSet;
+import net.coolblossom.lycee.common.DataSet;
 
 public abstract class SVMOptimizer {
 

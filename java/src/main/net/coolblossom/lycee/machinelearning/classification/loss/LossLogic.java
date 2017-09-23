@@ -1,6 +1,6 @@
 package net.coolblossom.lycee.machinelearning.classification.loss;
 
-import net.coolblossom.lycee.machinelearning.classification.DataSet;
+import net.coolblossom.lycee.common.DataSet;
 import net.coolblossom.lycee.utils.CalcUtil;
 
 /**

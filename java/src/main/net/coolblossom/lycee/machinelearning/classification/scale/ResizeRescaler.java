@@ -3,7 +3,7 @@ package net.coolblossom.lycee.machinelearning.classification.scale;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.coolblossom.lycee.machinelearning.classification.DataSet;
+import net.coolblossom.lycee.common.DataSet;
 
 /**
  * データセットを指定した範囲に変換するリスケーラー

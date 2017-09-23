@@ -1,4 +1,4 @@
-package net.coolblossom.lycee.machinelearning.classification;
+package net.coolblossom.lycee.common;
 
 /**
  * 学習用データセット
