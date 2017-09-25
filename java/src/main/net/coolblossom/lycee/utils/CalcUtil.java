@@ -4,7 +4,7 @@ public class CalcUtil {
 
 	/**
 	 * 内積計算
-	 * 
+	 *
 	 * @param lhs
 	 * @param rhs
 	 * @return
@@ -15,6 +15,10 @@ public class CalcUtil {
 			result += lhs[i] * rhs[i];
 		}
 		return result;
+	}
+
+	static public double sigmoid(double x) {
+		return 1.0 / (1.0 + Math.exp(-x));
 	}
 
 }
