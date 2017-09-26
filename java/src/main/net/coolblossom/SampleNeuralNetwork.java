@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.coolblossom.lycee.common.DataSet;
-import net.coolblossom.lycee.deeplearning.SimpleNeuralNetwork;
+import net.coolblossom.lycee.deeplearning.Perceptron;
 
 public class SampleNeuralNetwork extends SampleProgram {
 
@@ -22,7 +22,7 @@ public class SampleNeuralNetwork extends SampleProgram {
 
 	@Override
 	void execute() {
-		SimpleNeuralNetwork network = new SimpleNeuralNetwork(3, 3, 1);
+		Perceptron network = new Perceptron(3, 3, 1);
 
 		network.train(SAMPLE_DATA);
 

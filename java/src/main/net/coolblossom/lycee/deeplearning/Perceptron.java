@@ -6,11 +6,11 @@ import net.coolblossom.lycee.common.DataSet;
 import net.coolblossom.lycee.utils.RandomUtil;
 
 /**
- * 3層の単純ニューラルネットワークのモデル
+ * パーセプトロンモデル（3層の単純ニューラルネットワークのモデル）
  * @author ryouka0122@github
  *
  */
-public class SimpleNeuralNetwork extends NeuralNetwork<DataSet> {
+public class Perceptron extends NeuralNetwork<DataSet> {
 
 
 	/** 入力層ノード数 */
@@ -25,11 +25,17 @@ public class SimpleNeuralNetwork extends NeuralNetwork<DataSet> {
 	/** 中間層の重みパラメータ */
 	double[][] weightHidden;
 
+	/** 中間層のバイアス */
+	double[] biasHidden;
+
 	/** 出力層の重みパラメータ */
 	double[] weightOutput;
 
+	/** 出力層のバイアス */
+	double biasOutput;
+
 	/** 中間層の出力値*/
-	double[] hi;
+	double[] hiddenOutput;
 
 	/**
 	 * コンストラクタ
@@ -37,16 +43,18 @@ public class SimpleNeuralNetwork extends NeuralNetwork<DataSet> {
 	 * @param hidden 中間層ノード数
 	 * @param output 出力層ノード数
 	 */
-	public SimpleNeuralNetwork(int input, int hidden, int output) {
+	public Perceptron(int input, int hidden, int output) {
 		super(10.0, 0.001, Integer.MAX_VALUE);
 
 		this.inputNodeSize = input;
 		this.hiddenNodeSize = hidden;
 		this.outputNodeSize = output;
 
-		this.weightHidden = new double[hidden][input+1];
-		this.weightOutput = new double[hidden+1];
-		this.hi = new double[hidden];
+		this.weightHidden = new double[hidden][input];
+		this.biasHidden = new double[hidden];
+		this.weightOutput = new double[hidden];
+		this.biasOutput = 0.0;
+		this.hiddenOutput = new double[hidden];
 
 	}
 
@@ -73,6 +81,9 @@ public class SimpleNeuralNetwork extends NeuralNetwork<DataSet> {
 				/** calculate forward */
 				double result = forward(ds.x);
 
+				// =================================================
+				// back propagation
+				//
 				/** refine output layer */
 				refineOutputLayer(ds, result);
 
@@ -89,28 +100,29 @@ public class SimpleNeuralNetwork extends NeuralNetwork<DataSet> {
 	private double forward(double[] x) {
 		Neuron neuron = new Neuron();
 		for(int i=0 ; i<this.hiddenNodeSize ; i++) {
-			hi[i] = neuron.calc(inputNodeSize, x, weightHidden[i], weightHidden[i][inputNodeSize]);
+			hiddenOutput[i] = neuron.calc(inputNodeSize, x, weightHidden[i], biasHidden[i]);
 		}
-		return neuron.calc(hiddenNodeSize, hi, weightOutput, weightOutput[hiddenNodeSize]);
+		return neuron.calc(hiddenNodeSize, hiddenOutput, weightOutput, biasOutput);
 	}
 
 	private void refineOutputLayer(DataSet dataset, double result) {
 		double diff = (dataset.y-result) * result * (1.0 - result);
 		double K = this.lr * diff;
 		for(int i=0 ; i<this.hiddenNodeSize ; i++) {
-			this.weightOutput[i] += K * hi[i];
+			this.weightOutput[i] += K * hiddenOutput[i];
 		}
-		this.weightOutput[this.hiddenNodeSize] += K;
+		this.biasOutput += K;
 	}
 
 	private void refineHiddenLayer(DataSet dataset, double result) {
+		double z = (dataset.y - result) * result * (1.0 - result);
 		for(int j=0 ; j<this.hiddenNodeSize ; j++) {
-			double diff = hi[j] * (1.0 - hi[j]) * weightOutput[j] * (dataset.y - result) * result * (1.0 - result);
+			double diff = hiddenOutput[j] * (1.0 - hiddenOutput[j]) * weightOutput[j] * z;
 			double K = this.lr * diff;
 			for(int i=0; i<this.inputNodeSize ; i++) {
 				weightHidden[j][i] += K * dataset.y;
 			}
-			weightHidden[j][this.inputNodeSize] += K;
+			biasHidden[j] += K;
 		}
 	}
 

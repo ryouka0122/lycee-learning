@@ -53,7 +53,7 @@ public abstract class NeuralNetwork<TrainDataSet> {
 		return this.maxEpoch;
 	}
 
-	public void setTrainingParameter(double lr, double permit, int maxEpoch) {
+	public void setTrainingParameters(double lr, double permit, int maxEpoch) {
 		setLearningRate(lr);
 		setPermit(permit);
 		setMaxEpoch(maxEpoch);
