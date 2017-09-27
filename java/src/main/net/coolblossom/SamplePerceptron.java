@@ -6,7 +6,7 @@ import java.util.List;
 import net.coolblossom.lycee.common.DataSet;
 import net.coolblossom.lycee.deeplearning.Perceptron;
 
-public class SampleNeuralNetwork extends SampleProgram {
+public class SamplePerceptron extends SampleProgram {
 
 	List<DataSet> SAMPLE_DATA = new ArrayList<DataSet>() {{
 		add(new DataSet(1, 1,1,1));

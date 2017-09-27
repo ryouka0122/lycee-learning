@@ -12,7 +12,6 @@ import net.coolblossom.lycee.utils.RandomUtil;
  */
 public class Perceptron extends NeuralNetwork<DataSet> {
 
-
 	/** 入力層ノード数 */
 	int inputNodeSize;
 
@@ -22,20 +21,15 @@ public class Perceptron extends NeuralNetwork<DataSet> {
 	/** 出力層ノード数 */
 	int outputNodeSize;
 
-	/** 中間層の重みパラメータ */
-	double[][] weightHidden;
-
-	/** 中間層のバイアス */
-	double[] biasHidden;
-
-	/** 出力層の重みパラメータ */
-	double[] weightOutput;
-
-	/** 出力層のバイアス */
-	double biasOutput;
+	/** 中間層 */
+	Neuron[] hidden;
 
 	/** 中間層の出力値*/
 	double[] hiddenOutput;
+
+	/** 出力層 */
+	Neuron output;
+
 
 	/**
 	 * コンストラクタ
@@ -46,15 +40,20 @@ public class Perceptron extends NeuralNetwork<DataSet> {
 	public Perceptron(int input, int hidden, int output) {
 		super(10.0, 0.001, Integer.MAX_VALUE);
 
+		// 各層のノード数
 		this.inputNodeSize = input;
 		this.hiddenNodeSize = hidden;
 		this.outputNodeSize = output;
 
-		this.weightHidden = new double[hidden][input];
-		this.biasHidden = new double[hidden];
-		this.weightOutput = new double[hidden];
-		this.biasOutput = 0.0;
+		// 隠れ層の初期化
+		this.hidden = new Neuron[hidden];
+		for(int i=0 ; i<hidden ; i++) {
+			this.hidden[i] = new Neuron(input, this.lr, () -> 0.0);
+		}
 		this.hiddenOutput = new double[hidden];
+
+		// 出力層の初期化
+		this.output = new Neuron(hidden, this.lr, () -> 0.0);
 
 	}
 
@@ -85,10 +84,10 @@ public class Perceptron extends NeuralNetwork<DataSet> {
 				// back propagation
 				//
 				/** refine output layer */
-				refineOutputLayer(ds, result);
+				double[] delta = refineOutputLayer(ds, result, new double[]{ds.y-result});
 
 				/** refine hidden layer */
-				refineHiddenLayer(ds, result);
+				delta = refineHiddenLayer(ds, result, delta);
 
 				/** calculate error value */
 				err += (result - ds.y) * (result - ds.y);
@@ -97,35 +96,48 @@ public class Perceptron extends NeuralNetwork<DataSet> {
 		}while(cnt!=maxEpoch && err>permit);
 	}
 
+	/**
+	 * 順伝播処理
+	 * @param x 入力値
+	 * @return 出力層の出力値
+	 */
 	private double forward(double[] x) {
-		Neuron neuron = new Neuron();
 		for(int i=0 ; i<this.hiddenNodeSize ; i++) {
-			hiddenOutput[i] = neuron.calc(inputNodeSize, x, weightHidden[i], biasHidden[i]);
+			hiddenOutput[i] = this.hidden[i].ignite(x);
 		}
-		return neuron.calc(hiddenNodeSize, hiddenOutput, weightOutput, biasOutput);
+		return this.output.ignite(hiddenOutput);
 	}
 
-	private void refineOutputLayer(DataSet dataset, double result) {
-		double diff = (dataset.y-result) * result * (1.0 - result);
-		double K = this.lr * diff;
-		for(int i=0 ; i<this.hiddenNodeSize ; i++) {
-			this.weightOutput[i] += K * hiddenOutput[i];
+	private double[] refineOutputLayer(DataSet dataset, double result, double[] error) {
+		double diff = 0.0;
+		for(int i=0 ; i<error.length ; i++) {
+			diff += error[i] * result * (1.0 - result);
 		}
-		this.biasOutput += K;
+		return this.output.refine(hiddenOutput, diff);
 	}
 
-	private void refineHiddenLayer(DataSet dataset, double result) {
-		double z = (dataset.y - result) * result * (1.0 - result);
+	private double[][] refineHiddenLayer(DataSet dataset, double result, double[] error) {
+		double[][] deltaAry = new double[hiddenNodeSize][inputNodeSize];
 		for(int j=0 ; j<this.hiddenNodeSize ; j++) {
-			double diff = hiddenOutput[j] * (1.0 - hiddenOutput[j]) * weightOutput[j] * z;
-			double K = this.lr * diff;
-			for(int i=0; i<this.inputNodeSize ; i++) {
-				weightHidden[j][i] += K * dataset.y;
-			}
-			biasHidden[j] += K;
+			double diff = error[j] * hiddenOutput[j] * (1.0 - hiddenOutput[j]);
+			double[] delta = this.hidden[j].refine(dataset.x, diff);
 		}
+		return deltaAry;
 	}
 
+	/**
+	 * 処理層の更新
+	 * @param neuron その層を表現するニューロン群
+	 * @param input 入力値
+	 * @param output 出力値
+	 * @param expected 期待値
+	 */
+	private void refineLayer(Neuron[] neuron, double[] input, double[] output, double[] diff) {
+		for(int i=0 ; i<neuron.length ; i++) {
+			double z = diff[i] * output[i] * (1.0 - output[i]);
+			neuron[i].refine(input, z);;
+		}
+	}
 
 	private void initWeight(double[][] w) {
 		for(int j=0 ; j<w.length ; j++) {
