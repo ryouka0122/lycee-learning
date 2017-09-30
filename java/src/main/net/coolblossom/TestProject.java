@@ -24,9 +24,9 @@ public class TestProject {
 		// SamplePA         : PAアルゴリズムを利用したオンライン学習のサンプル
 		//
 		// [深層学習]
-		// SampleNeuralNetwork : 隠れ層１つの浅層ニューラルネットワーク
-		// SampleCNN           : 畳み込みニューラルネットワークのサンプル
-		SampleProgram program = new SampleCNN();
+		// SamplePerceptron : 隠れ層１つの浅層ニューラルネットワーク
+		// SampleCNN        : 畳み込みニューラルネットワークのサンプル
+		SampleProgram program = new SamplePerceptron();
 
 		program.execute();
 
