@@ -9,6 +9,11 @@
 ### Passive-Aggressive Algorithm
 PAアルゴリズムの中でハードマージンの性能を持つPAとソフトマージンの性能を持つPA-I／PA-IIの3種類を実装
 
+### ニューラルネットワーク
+ニューラルネットワークの核となるニューロモデルを実装  
+3層ニューラルネットワークのパーセプトロンモデルとCNNを実装  
+学習にはバックプロパゲーションを採用  
+
 
 ## 以下実装予定項目
 関連のありそうな項目でまとめてある．
@@ -32,9 +37,9 @@ PAアルゴリズムの中でハードマージンの性能を持つPAとソフ�
       * Stacked Autoencoder(SAE)
       * Denoising Autoencoder(DAE)
   * Deep Learning
-    * Deep Neural Network(DNN)
-      * Back Propagation
-    * Convolutional Neural Network(CNN)
+    * ~~Deep Neural Network(DNN)~~
+      * ~~Back Propagation~~
+    * ~~Convolutional Neural Network(CNN)~~
     * Recurrent Neural Network(RNN)
     
 
