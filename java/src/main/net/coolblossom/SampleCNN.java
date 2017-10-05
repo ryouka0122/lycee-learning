@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.coolblossom.lycee.common.DataSet2D;
-import net.coolblossom.lycee.deeplearning.ConvolutionalNeuralNetwork;
+import net.coolblossom.lycee.machinelearning.deeplearning.ConvolutionalNeuralNetwork;
 
 /**
  * CNNのサンプルプログラム
@@ -85,7 +85,7 @@ public class SampleCNN extends SampleProgram {
 		network.train(SAMPLE_DATA);
 
 		for(DataSet2D ds : SAMPLE_DATA) {
-			double result = network.predict(ds.x, ds.y);
+			double result = network.predict(ds.x);
 			System.out.println(ds.y + ":" + result);
 		}
 

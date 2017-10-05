@@ -1,4 +1,4 @@
-package net.coolblossom.lycee.arithmetics.functions.base;
+package net.coolblossom.lycee.common.functors.base;
 
 /**
  * 関数インタフェイス

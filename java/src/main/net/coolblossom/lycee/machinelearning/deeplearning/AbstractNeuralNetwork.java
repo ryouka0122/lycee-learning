@@ -1,4 +1,4 @@
-package net.coolblossom.lycee.deeplearning;
+package net.coolblossom.lycee.machinelearning.deeplearning;
 
 /**
  * ニューラルネットワーク

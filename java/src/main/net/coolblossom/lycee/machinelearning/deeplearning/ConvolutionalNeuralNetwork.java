@@ -1,9 +1,11 @@
-package net.coolblossom.lycee.deeplearning;
+package net.coolblossom.lycee.machinelearning.deeplearning;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 import net.coolblossom.lycee.common.DataSet2D;
+import net.coolblossom.lycee.machinelearning.deeplearning.filters.MaxPool;
+import net.coolblossom.lycee.machinelearning.deeplearning.filters.WeightedFilter;
 import net.coolblossom.lycee.utils.RandomUtil;
 
 /**
@@ -35,7 +37,7 @@ public class ConvolutionalNeuralNetwork
 	int kernelSize;
 
 	/** フィルタ */
-	private CnnFilter[] cnnFilters;
+	private WeightedFilter[] cnnFilters;
 
 	int filterSize;
 
@@ -69,9 +71,9 @@ public class ConvolutionalNeuralNetwork
 		this.cnnOutput = new double[poolOutSize * poolOutSize * filterSize + 1];
 
 		// 畳み込み層フィルタ生成
-		this.cnnFilters = new CnnFilter[filterSize];
+		this.cnnFilters = new WeightedFilter[filterSize];
 		for(int i=0; i<filterSize ; i++) {
-			this.cnnFilters[i] = new CnnFilter(kernel, kernel);
+			this.cnnFilters[i] = new WeightedFilter(kernel, kernel);
 		}
 
 		// 隠れ層ノード生成
@@ -90,7 +92,7 @@ public class ConvolutionalNeuralNetwork
 
 		int poolOffsetSize = poolOutSize*poolOutSize;
 		for(int j=0, poolOffset=0 ; j<filterSize ; j++, poolOffset += poolOffsetSize) {
-			CnnFilter filter = cnnFilters[j];
+			WeightedFilter filter = cnnFilters[j];
 			// filter
 			double[][] filterOut = doFilter(filter, data);
 
@@ -149,7 +151,7 @@ public class ConvolutionalNeuralNetwork
 	}
 
 	private void initFilter() {
-		for(CnnFilter filter : cnnFilters) {
+		for(WeightedFilter filter : cnnFilters) {
 			for(int i=0 ; i<filter.width; i++) {
 				for(int j=0 ; j<filter.width ; j++) {
 					filter.weight[i][j] = RandomUtil.random();
@@ -172,25 +174,13 @@ public class ConvolutionalNeuralNetwork
 		}
 	}
 
-	private double[][] doFilter(CnnFilter filter, double[][] data) {
+	private double[][] doFilter(WeightedFilter filter, double[][] data) {
 		int st= filterSize / 2;
 		double[][] result = new double[inputNodeSize][inputNodeSize];
 
 		for(int i=st ; i<inputNodeSize - st ; i++) {
 			for(int j=st ; j<inputNodeSize - st ; j++) {
-				result[i][j] = calcFilter(filter, data, i, j);
-			}
-		}
-		return result;
-	}
-
-	private double calcFilter(CnnFilter filter, double[][] data, int i, int j) {
-		double result=0.0;
-		int cx = i - filterSize / 2;
-		int cy = j - filterSize / 2;
-		for(int m=0 ; m<filter.width ; m++) {
-			for(int n=0 ; n<filter.width ; n++) {
-				result += filter.weight[m][n] * data[cx+m][cy+n];
+				result[i][j] = filter.calc(data, i - filterSize/2, j- filterSize/2);
 			}
 		}
 		return result;
@@ -198,9 +188,10 @@ public class ConvolutionalNeuralNetwork
 
 	private double[][] doPool(double[][] filterOut) {
 		double [][] poolOut = new double[poolOutSize][poolOutSize];
+		MaxPool maxPool = new MaxPool(poolSize);
 		for(int j=0 ; j<poolOutSize ; j++) {
 			for(int i=0 ; i<poolOutSize ; i++) {
-				poolOut[j][i] = maxPooling(filterOut, i, j);
+				poolOut[j][i] = maxPool.calc(filterOut, i, j);
 			}
 		}
 		return poolOut;

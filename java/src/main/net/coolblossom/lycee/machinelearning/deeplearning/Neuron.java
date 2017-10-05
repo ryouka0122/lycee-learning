@@ -1,10 +1,10 @@
-package net.coolblossom.lycee.deeplearning;
+package net.coolblossom.lycee.machinelearning.deeplearning;
 
 import java.util.function.Supplier;
 
-import net.coolblossom.lycee.arithmetics.functions.Sigmoid;
-import net.coolblossom.lycee.arithmetics.functions.base.DifferentiableFunction;
-import net.coolblossom.lycee.arithmetics.functions.base.Functor;
+import net.coolblossom.lycee.common.functors.Sigmoid;
+import net.coolblossom.lycee.common.functors.base.DifferentiableFunction;
+import net.coolblossom.lycee.common.functors.base.Functor;
 
 /**
  * ニューロンモデル

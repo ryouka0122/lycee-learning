@@ -1,7 +1,7 @@
-package net.coolblossom.lycee.arithmetics.functions;
+package net.coolblossom.lycee.common.functors;
 
-import net.coolblossom.lycee.arithmetics.functions.base.DifferentiableFunction;
-import net.coolblossom.lycee.arithmetics.functions.base.Functor;
+import net.coolblossom.lycee.common.functors.base.DifferentiableFunction;
+import net.coolblossom.lycee.common.functors.base.Functor;
 
 /**
  * シグモイド関数オブジェクト
@@ -9,6 +9,11 @@ import net.coolblossom.lycee.arithmetics.functions.base.Functor;
  *
  */
 public class Sigmoid implements DifferentiableFunction<Double, Double> {
+	/**
+	 * シグモイド関数の1次微分
+	 * @author ryouka0122@github
+	 *
+	 */
 	class DifferantiatedSigmoid implements DifferentiableFunction<Double, Double> {
 
 		@Override
