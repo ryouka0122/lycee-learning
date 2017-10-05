@@ -1,8 +1,11 @@
-package net.coolblossom.lycee.deeplearning;
+package net.coolblossom.lycee.machinelearning.deeplearning;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.coolblossom.lycee.common.DataSet2D;
+import net.coolblossom.lycee.machinelearning.deeplearning.filters.MaxPool;
+import net.coolblossom.lycee.machinelearning.deeplearning.filters.WeightedFilter;
 import net.coolblossom.lycee.utils.RandomUtil;
 
 /**
@@ -10,7 +13,9 @@ import net.coolblossom.lycee.utils.RandomUtil;
  * @author ryouka0122@github
  *
  */
-public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
+public class ConvolutionalNeuralNetwork
+	extends AbstractNeuralNetwork<double[][], Double, DataSet2D>
+{
 
 	int inputNodeSize;
 	int hiddenNodeSize;
@@ -23,13 +28,16 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 	double[] weightOutput;
 	double[] hi;
 
+	Neuron[] hidden;
+	Neuron output;
+
 	int dataSize;
-	double[] ef;
+	double[] cnnOutput;
 
 	int kernelSize;
 
 	/** フィルタ */
-	private CnnFilter[] cnnFilters;
+	private WeightedFilter[] cnnFilters;
 
 	int filterSize;
 
@@ -42,7 +50,12 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 	 * @param poolOutSize プーリング数
 	 * @param hidden 隠れ層ノード数
 	 */
-	public ConvolutionalNeuralNetwork(int input, int kernel, int filterSize, int poolSize, int poolOutSize, int hidden) {
+	public ConvolutionalNeuralNetwork(
+			int input,
+			int kernel, int filterSize,
+			int poolSize, int poolOutSize,
+			int hidden
+	) {
 		super(10.0, 0.001, Integer.MAX_VALUE);
 
 		this.inputNodeSize = input;
@@ -55,41 +68,46 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 		this.hi = new double[hidden+1];
 
 		this.dataSize = poolOutSize * poolOutSize * filterSize;
-		this.ef = new double[poolOutSize * poolOutSize * filterSize + 1];
+		this.cnnOutput = new double[poolOutSize * poolOutSize * filterSize + 1];
 
-		this.weightHidden = new double[hidden][poolOutSize*poolOutSize * filterSize + 1];
-		this.weightOutput = new double[hidden + 1];
-
-		this.cnnFilters = new CnnFilter[filterSize];
+		// 畳み込み層フィルタ生成
+		this.cnnFilters = new WeightedFilter[filterSize];
 		for(int i=0; i<filterSize ; i++) {
-			this.cnnFilters[i] = new CnnFilter(kernel, kernel);
+			this.cnnFilters[i] = new WeightedFilter(kernel, kernel);
 		}
+
+		// 隠れ層ノード生成
+		this.hidden = Stream
+				.generate( () -> new Neuron(dataSize, lr, RandomUtil::random) )
+				.limit(hidden)
+				.toArray(n -> new Neuron[n]);
+
+		// 出力層ノード生成
+		this.output = new Neuron(hidden, lr);
+
 	}
 
-	@Deprecated
 	@Override
-	public double[] predict(double[] data) {
-		return null;
-	}
+	public Double predict(double[][] data) {
 
-	public double predict(double[][] data, double t) {
-
-		double[] ef = new double[dataSize+1];
-
-		for(int j=0 ; j<filterSize ; j++) {
-			CnnFilter filter = cnnFilters[j];
+		int poolOffsetSize = poolOutSize*poolOutSize;
+		for(int j=0, poolOffset=0 ; j<filterSize ; j++, poolOffset += poolOffsetSize) {
+			WeightedFilter filter = cnnFilters[j];
+			// filter
 			double[][] filterOut = doFilter(filter, data);
+
+			// maxpool
 			double[][] poolOut = doPool(filterOut);
 
 			for(int m=0 ; m<poolOutSize ; m++) {
 				for(int n=0 ; n<poolOutSize ; n++) {
-					ef[j*poolOutSize*poolOutSize + m*poolOutSize + n]
-							= poolOut[m][n];
+					cnnOutput[poolOffset + m*poolOutSize + n] = poolOut[m][n];
 				}
 			}
 		}
-		ef[dataSize] = t;
-		return forward(ef);
+
+		// forward propagation using neural-network
+		return forward(cnnOutput);
 	}
 
 	@Override
@@ -106,30 +124,26 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 			cnt++;
 			err= 0.0;
 			for(int i=0, l = dataSetList.size() ; i<l ; i++) {
+
 				DataSet2D dataset = dataSetList.get(i);
-				for(int j=0 ; j<filterSize ; j++) {
-					CnnFilter filter = cnnFilters[j];
-					double[][] filterOut = doFilter(filter, dataset.x);
-					double[][] poolOut = doPool(filterOut);
-					for(int m=0 ; m<poolOutSize ; m++) {
-						for(int n=0 ; n<poolOutSize ; n++) {
-							ef[j*poolOutSize*poolOutSize + poolOutSize*m+n] = poolOut[m][n];
-						}
-					}
-				}
-				ef[dataSize] = dataset.y;
 
 				/** forward-calculate */
-				double output = forward(ef);
+				double result = predict(dataset.x);
+
+				// =====================================================
+				//
+				// refine neural-network (Back Propagation)
+				//
+				double diff = dataset.y - result;
 
 				/** refine output layer */
-				refineOutputLayer(ef, output);
+				double[] delta = refineOutputLayer(hi, result, diff);
 
 				/** refine hidden layer */
-				refineHiddenLayer(ef, output);
+				refineHiddenLayer(cnnOutput, hi, delta);
 
 				/** calculate error value */
-				err += (output - dataset.y) * (output - dataset.y);
+				err += diff * diff;
 			}
 
 		}while(cnt<maxEpoch && err>permit);
@@ -137,7 +151,7 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 	}
 
 	private void initFilter() {
-		for(CnnFilter filter : cnnFilters) {
+		for(WeightedFilter filter : cnnFilters) {
 			for(int i=0 ; i<filter.width; i++) {
 				for(int j=0 ; j<filter.width ; j++) {
 					filter.weight[i][j] = RandomUtil.random();
@@ -160,25 +174,13 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 		}
 	}
 
-	private double[][] doFilter(CnnFilter filter, double[][] data) {
+	private double[][] doFilter(WeightedFilter filter, double[][] data) {
 		int st= filterSize / 2;
 		double[][] result = new double[inputNodeSize][inputNodeSize];
 
 		for(int i=st ; i<inputNodeSize - st ; i++) {
 			for(int j=st ; j<inputNodeSize - st ; j++) {
-				result[i][j] = calcFilter(filter, data, i, j);
-			}
-		}
-		return result;
-	}
-
-	private double calcFilter(CnnFilter filter, double[][] data, int i, int j) {
-		double result=0.0;
-		int cx = i - filterSize / 2;
-		int cy = j - filterSize / 2;
-		for(int m=0 ; m<filter.width ; m++) {
-			for(int n=0 ; n<filter.width ; n++) {
-				result += filter.weight[m][n] * data[cx+m][cy+n];
+				result[i][j] = filter.calc(data, i - filterSize/2, j- filterSize/2);
 			}
 		}
 		return result;
@@ -186,9 +188,10 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 
 	private double[][] doPool(double[][] filterOut) {
 		double [][] poolOut = new double[poolOutSize][poolOutSize];
+		MaxPool maxPool = new MaxPool(poolSize);
 		for(int j=0 ; j<poolOutSize ; j++) {
 			for(int i=0 ; i<poolOutSize ; i++) {
-				poolOut[j][i] = maxPooling(filterOut, i, j);
+				poolOut[j][i] = maxPool.calc(filterOut, i, j);
 			}
 		}
 		return poolOut;
@@ -209,31 +212,20 @@ public class ConvolutionalNeuralNetwork extends NeuralNetwork<DataSet2D> {
 	}
 
 	private double forward(double[] data) {
-		Neuron neuron = new Neuron();
+		Neuron neuron = new Neuron(hiddenNodeSize, lr);
 		for(int i=0 ; i<hiddenNodeSize ; i++) {
 			hi[i] = neuron.calc(dataSize, data, weightHidden[i], weightHidden[i][dataSize]);
 		}
 		return neuron.calc(hiddenNodeSize, hi, weightOutput, hi[hiddenNodeSize]);
 	}
 
-	private void refineOutputLayer(double[] data, double result) {
-		double diff = (data[dataSize] - result) * result * (1.0 - result);
-		double K = lr * diff;
-		for(int i=0 ; i<hiddenNodeSize ; i++) {
-			weightOutput[i] += K * hi[i];
-		}
-		weightOutput[hiddenNodeSize] += K * -1.0;
+	private double[] refineOutputLayer(double[] inputData, double result, double error) {
+		return this.output.refine(inputData, result, error);
 	}
 
-	private void refineHiddenLayer(double[] data, double result) {
-		for(int j=0 ; j<hiddenNodeSize ; j++) {
-			double diff = hi[j] * (1.0 - hi[j]) * weightOutput[j]
-					* (data[dataSize] - result) * result * (1.0 - result);
-			double K = lr * diff;
-			for(int i=0 ; i<dataSize ; i++) {
-				weightHidden[j][i] += K * ef[i];
-			}
-			weightHidden[j][dataSize] += K * -1.0;
+	private void refineHiddenLayer(double[] inputData, double[] result, double[] error) {
+		for(int i=0 ; i<this.hiddenNodeSize ; i++) {
+			this.hidden[i].refine(inputData, result[i], error[i]);
 		}
 	}
 

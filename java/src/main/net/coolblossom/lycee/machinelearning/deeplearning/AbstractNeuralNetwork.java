@@ -1,13 +1,17 @@
-package net.coolblossom.lycee.deeplearning;
-
-import java.util.List;
+package net.coolblossom.lycee.machinelearning.deeplearning;
 
 /**
  * ニューラルネットワーク
  * @author ryouka0122@github
  *
+ * @param <T> 観測データタイプ
+ * @param <R> 出力タイプ
+ * @param <D> 学習用データ・タイプ
  */
-public abstract class NeuralNetwork<TrainDataSet> {
+public abstract class AbstractNeuralNetwork<T, R, D>
+	implements NeuralNetwork<T, R, D>
+{
+
 	/** 学習率 */
 	protected double lr;
 
@@ -23,7 +27,7 @@ public abstract class NeuralNetwork<TrainDataSet> {
 	 * @param permit
 	 * @param maxEpoch
 	 */
-	public NeuralNetwork(double lr, double permit, int maxEpoch) {
+	public AbstractNeuralNetwork(double lr, double permit, int maxEpoch) {
 		this.lr = lr;
 		this.permit = permit;
 		this.maxEpoch = maxEpoch;
@@ -60,17 +64,9 @@ public abstract class NeuralNetwork<TrainDataSet> {
 	}
 
 	/**
-	 * 予測
-	 * @param data 観測データ群
-	 * @return 予測値
+	 * ネットワークの重みパラメータ調整
+	 * @param ds 観測データと期待値
+	 * @param result 算出値
 	 */
-	abstract double[] predict(double[] data);
-
-	/**
-	 * 学習
-	 * @param dataSetList 教師データ群
-	 */
-	abstract void train(List<TrainDataSet> dataSetList);
-
-
+	//abstract protected void refineNetwork(D ds, R result);
 }

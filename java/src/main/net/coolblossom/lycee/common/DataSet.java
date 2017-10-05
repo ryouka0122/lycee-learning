@@ -2,7 +2,7 @@ package net.coolblossom.lycee.common;
 
 /**
  * 学習用データセット
- * 
+ *
  * @author ryouka0122@github
  *
  */
@@ -18,7 +18,7 @@ public class DataSet {
 
 	/**
 	 * コンストラクタ
-	 * 
+	 *
 	 * @param y
 	 *            ラベル
 	 * @param data
