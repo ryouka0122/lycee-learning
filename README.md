@@ -27,10 +27,10 @@ PAアルゴリズムの中でハードマージンの性能を持つPAとソフ�
 * Machine Learning
   * ~~Classification~~
     * ~~Batch learning~~
-      * Support Vector Machine(SVM)
+      * ~~Least Squares Method~~
+      * ~~Support Vector Machine(SVM)~~
         * ~~Dual Coordinates Descent~~
-        * Sequential Minimal Optimization(SMO)
-      * Least Squares Method
+        * ~~Sequential Minimal Optimization(SMO)~~
     * ~~Online learning~~
       * ~~Passive-Aggressive Algorithm(PA)~~
         * ~~PA~~
