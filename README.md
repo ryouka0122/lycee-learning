@@ -1,3 +1,7 @@
+# 注意
+このリポジトリは，個人的に勉強するために作成しています．
+そのため，手法や実装についての是非，成否は保証しておりません．
+
 # lycee-learning
 機械学習系実装サンプル
 
@@ -17,9 +21,21 @@ PAアルゴリズムの中でハードマージンの性能を持つPAとソフ�
 
 ## 以下実装予定項目
 関連のありそうな項目でまとめてある．
-別の項目が一概に相関がない訳ではない
+別の項目が一概に相関がない訳ではない．
+実装完了したものは，打ち消し線で消してあります．
 
 * Machine Learning
+  * ~~Classification~~
+    * ~~Batch learning~~
+      * ~~Least Squares Method~~
+      * ~~Support Vector Machine(SVM)~~
+        * ~~Dual Coordinates Descent~~
+        * ~~Sequential Minimal Optimization(SMO)~~
+    * ~~Online learning~~
+      * ~~Passive-Aggressive Algorithm(PA)~~
+        * ~~PA~~
+        * ~~PA-I~~
+        * ~~PA-II~~
   * Q-Learing
     * Deep Q-Learning(DQL)
   * Reinforcement Learning
