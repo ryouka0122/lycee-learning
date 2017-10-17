@@ -40,22 +40,36 @@ public class RestrictedBoltzmannMachine implements BoltzmannMachine {
 		this.hiddenNodeSize =  hSize;
 		this.lr = lr;
 
-		this.weight = new double[vSize][hSize];
+		this.weight = new double[hSize][vSize];
 		this.visibleBias = new double[vSize];
 		this.hiddenBias = new double[hSize];
 	}
 
 	@Override
-	public double[] predict(double[] input) {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
+	public double[] predict(int[] input) {
+		double[] h = new double[hiddenNodeSize];
+		for(int j=0 ; j<hiddenNodeSize ; j++) {
+			h[j] = propup(input, j, hiddenBias[j]);
+		}
+
+		double[] result = new double[visibleNodeSize];
+
+		for(int i=0 ; i<visibleNodeSize ; i++) {
+			double x = visibleBias[i];
+			for(int j=0 ; j<hiddenNodeSize ; j++) {
+				x += weight[j][i] * h[j];
+			}
+			result[i] = CalcUtil.sigmoid(x);
+		}
+
+		return result;
 	}
 
 	@Override
 	public void learn(Set<RBMDataSet> dataSet) {
 		int N = dataSet.size();
 		dataSet.forEach(ds -> {
-			this.contrastive_divergence(N, ds, 1);
+			this.contrastive_divergence(N, ds.x, 1);
 		});
 		;
 	}
@@ -79,26 +93,36 @@ public class RestrictedBoltzmannMachine implements BoltzmannMachine {
 	/**
 	 * CD-k法による最適化
 	 * @param N データ数
-	 * @param ds 観測データ
+	 * @param input 観測データ
 	 * @param k CD-k法のk値
 	 */
-	private void contrastive_divergence(int N, RBMDataSet ds, int k) {
+	private void contrastive_divergence(int N, int[] input, int k) {
 		double K = this.lr / N;		// 事前計算
 
 		// 各種データ
 		CDkDataSet prev_hidden, next_visible, next_hidden;
 
-		prev_hidden = sample_h_given_v(ds.x);
+		prev_hidden = sample_h_given_v(input);
 
-		//CD-k法のギブスサンプリング
+		//CD-k法のギブズサンプリング
 		CDkDataSet p = prev_hidden;
-		for(int i=0 ; i<k ; i++) {
+		// TODO ループの意味がわかるまでコメントアウト
+		//for(int i=0 ; i<k ; i++) {
 			next_visible = sample_v_given_h(p.sample);
 			next_hidden = sample_h_given_v(next_visible.sample);
-			p = next_hidden;
-		}
+		//	p = next_hidden;
+		//}
 
 		// 各パラメータの更新処理
+		for(int j=0 ; j<hiddenNodeSize ; j++) {
+			for(int i=0 ; i<visibleNodeSize ; i++) {
+				weight[j][i] += K * (prev_hidden.mean[j] * input[i] - next_hidden.mean[j] * next_visible.sample[i]);
+			}
+			hiddenBias[j] += K * (prev_hidden.sample[j] - next_hidden.mean[j]);
+		}
+		for(int i=0 ; i<visibleNodeSize ; i++) {
+			visibleBias[i] += K * (input[i] - next_visible.sample[i]);
+		}
 
 	}
 

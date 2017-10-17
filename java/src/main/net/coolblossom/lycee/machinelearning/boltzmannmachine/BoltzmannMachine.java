@@ -14,7 +14,7 @@ public interface BoltzmannMachine {
 	 * @param input 入力データ（観測データ）
 	 * @return 予測値
 	 */
-	double[] predict(double[] input);
+	double[] predict(int[] input);
 
 	/**
 	 * 学習

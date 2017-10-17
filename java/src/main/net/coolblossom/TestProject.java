@@ -26,7 +26,10 @@ public class TestProject {
 		// [深層学習]
 		// SamplePerceptron : 隠れ層１つの浅層ニューラルネットワーク
 		// SampleCNN        : 畳み込みニューラルネットワークのサンプル
-		SampleProgram program = new SamplePerceptron();
+		//
+		// [ボルツマンマシン]
+		// SampleRBM        : ボルツマンマシン
+		SampleProgram program = new SampleRBM();
 
 		program.execute();
 

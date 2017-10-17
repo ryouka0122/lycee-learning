@@ -17,6 +17,16 @@ public class RBMDataSet {
 	/**
 	 * コンストラクタ
 	 *
+	 * @param data
+	 *            バイアスを含む観測データ
+	 */
+	public RBMDataSet(int... data) {
+		this(0.0, data);
+	}
+
+	/**
+	 * コンストラクタ
+	 *
 	 * @param y
 	 *            ラベル
 	 * @param data
